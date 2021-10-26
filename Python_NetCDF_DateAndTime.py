@@ -12,6 +12,9 @@ https://gitlab.kitware.com/paraview/paraview/blob/master/Examples/Plugins/Python
 
 """
 
+#if you didn't add netcdf4-python to the system path, add it here
+#import sys
+#sys.path.append('path_to_your_netcdf4_python_folder')
 
 # VTKPythonAlgorithmBase, the base class for all python-based vtkAlgorithm 
 #subclasses in VTK and decorators used to 'register' the algorithm with ParaView 
@@ -23,19 +26,9 @@ import vtk
 from paraview.simple import *
 from paraview.numpy_support import *
 
-import sys, os
-sys.path.append(os.path.join(os.path.dirname('D:/WORK/'), 'DATE_TIME_PYTHON_PLUGIN'))
-#sys.path.append('D:/WORK/DATE_TIME_PYTHON_PLUGIN')
-#sys.path.append(os.path.join(os.path.dirname('D:/WORK/EUREC4A/'), 'PYTHON'))
-
-
-#from netcdftime import utime
-#from netcdftime import datetime
-
 from datetime import datetime
 from cftime import num2date, date2num
 from cftime import utime
-
 
 import ctypes #for the message box 
 
