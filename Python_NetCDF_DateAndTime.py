@@ -131,7 +131,7 @@ class NetCDF_DateAndTime(VTKPythonAlgorithmBase):
         col.InsertNextValue(str(current_time_formatted))
         self.dateTimeTable.AddColumn(col)   
         
-        text = "%02i/%02i/%02i   %02i:%02i" % (current_time.day, current_time.month, current_time.year, current_time.hour, current_time.minute)
+        #text = "%02i/%02i/%02i   %02i:%02i" % (current_time.day, current_time.month, current_time.year, current_time.hour, current_time.minute)
         
         day = current_time.day
         month = "%02i" % (current_time.month)
