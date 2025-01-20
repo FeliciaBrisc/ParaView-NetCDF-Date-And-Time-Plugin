@@ -4,6 +4,18 @@ Code by Felicia Brisc (CEN University of Hamburg), distributed under a BSD 3-Cla
 A Python filter for ParaView (www.paraview.org). Displays the date and time of NetCDF files in the 3D viewport. 
 Version 1.0
 
+*** This version will work only if the cftime package version is less than 1.5.0. ***
+*** Starting with cftime version 1.5.0 the utime class was removed.               ***
+*** Therefore, this script will give an error at this line:                       ***
+*** self.cdftime = utime(time_units.GetValue(0))                                  ***
+***                                                                               ***
+*** Version 1.1 of this script addresses this issue and is compatible with        ***
+*** cftime versions that do or do not include the utime class.                    ***
+***                                                                               ***
+*** To check the version of cftime you have installed, type in Python:            ***
+*** >>> import cftime                                                             ***
+*** >>> print(cftime.__version__)                                                 ***
+
 The filter works with ParaView 5.6+ ( it was developed and tested on ParaView 5.8.1) 
 and requires the netcdf4-python module https://github.com/Unidata/netcdf4-python
 
@@ -11,6 +23,7 @@ The examples made available by Kitware at the link below have been useful for th
 https://gitlab.kitware.com/paraview/paraview/blob/master/Examples/Plugins/PythonAlgorithm/PythonAlgorithmExamples.py
 
 """
+__version__ = "1.0"
 
 #if you didn't add netcdf4-python to the system path, add it here
 #import sys
