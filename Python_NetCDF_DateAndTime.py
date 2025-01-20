@@ -2,32 +2,32 @@
 Code by Felicia Brisc (CEN University of Hamburg), distributed under a BSD 3-Clause License
 
 A Python filter for ParaView (www.paraview.org). Displays the date and time of NetCDF files in the 3D viewport. 
-Version 1.0
 
-*** This version will work only if the cftime package version is less than 1.5.0. ***
-*** Starting with cftime version 1.5.0 the utime class was removed.               ***
-*** Therefore, this script will give an error at this line:                       ***
-*** self.cdftime = utime(time_units.GetValue(0))                                  ***
+Version 1.1
+
+The filter was tested with ParaView 5.8.1, 5.10.1, 5.12 
+and requires the netcdf4-python module https://github.com/Unidata/netcdf4-python
+
+*** The cftime package was earlier embedded within the netCDF4 package,           ***
+*** but was split from it and became a required depenency of the netCDF4 package. ***
+***                                                                               ***
+*** The utime class was removed from the cftime package since version 1.5.0!      ***
+***                                                                               ***
+*** This caused in the first version of this Python plugin (v1.0) an error        ***
+*** at this line: self.cdftime = utime(time_units.GetValue(0))                    ***
 ***                                                                               ***
 *** Version 1.1 of this script addresses this issue and is compatible with        ***
 *** cftime versions that do or do not include the utime class.                    ***
 ***                                                                               ***
 *** To check the version of cftime you have installed, type in Python:            ***
 *** >>> import cftime                                                             ***
-*** >>> print(cftime.__version__)                                                 ***
-
-The filter works with ParaView 5.6+ ( it was developed and tested on ParaView 5.8.1) 
-and requires the netcdf4-python module https://github.com/Unidata/netcdf4-python
+*** >>> print(cftime.__version__)
 
 The examples made available by Kitware at the link below have been useful for this filter
 https://gitlab.kitware.com/paraview/paraview/blob/master/Examples/Plugins/PythonAlgorithm/PythonAlgorithmExamples.py
 
 """
-__version__ = "1.0"
-
-#if you didn't add netcdf4-python to the system path, add it here
-#import sys
-#sys.path.append('path_to_your_netcdf4_python_folder')
+__version__ = "1.1"
 
 # VTKPythonAlgorithmBase, the base class for all python-based vtkAlgorithm 
 #subclasses in VTK and decorators used to 'register' the algorithm with ParaView 
@@ -39,11 +39,14 @@ import vtk
 from paraview.simple import *
 from paraview.numpy_support import *
 
-from datetime import datetime
-from cftime import num2date, date2num
-from cftime import utime
 
-import ctypes #for the message box 
+import cftime
+from datetime import datetime
+from cftime import num2date, date2num  #, _datesplit, _dateparse
+#from cftime import utime
+
+
+#import ctypes #for the message box 
 
 
 def createModifiedCallback(anobject):
@@ -90,7 +93,14 @@ class NetCDF_DateAndTime(VTKPythonAlgorithmBase):
         
         inFieldData = inData.GetFieldData()
         time_units = inFieldData.GetAbstractArray(0)
-        self.cdftime = utime(time_units.GetValue(0)) 
+        
+        #cftime version check, because in version 1.5.0. the utime class was removed
+        if (cftime.__version__ < "1.5.0" ):
+            #get the legacy utime class from cftime
+            self.cdftime = cftime.utime(time_units.GetValue(0)) 
+        else:
+            #get our utime class, which is defined in this file to replace the legacy class
+            self.cdftime = utime(time_units.GetValue(0)) 
 
         return super().RequestDataObject(request, inInfoVec, outInfoVec)
         
@@ -133,7 +143,8 @@ class NetCDF_DateAndTime(VTKPythonAlgorithmBase):
             if self.displayMinutesEnabled: 
                 current_time_formatted += ":%02i" % current_time.second
             else:
-                ctypes.windll.user32.MessageBoxW(0, "Seconds can be displayed only when minutes are displayed, too. " + "\nPlease check first the 'Display Minutes', then the 'Display Seconds' checkbox!", "Error Alert", 0)
+                print("Seconds can be displayed only when minutes are displayed, too. Please check first the 'Display Minutes', then the 'Display Seconds' checkbox!")
+                #ctypes.windll.user32.MessageBoxW(0, "Seconds can be displayed only when minutes are displayed, too. " + "\nPlease check first the 'Display Minutes', then the 'Display Seconds' checkbox!", "Error Alert", 0)
                 return 1
             
 
@@ -222,4 +233,24 @@ class NetCDF_DateAndTime(VTKPythonAlgorithmBase):
         else:
             self.displaySecondsEnabled = False
         self.Modified() 
+        
+# This replaces the legacy utime class, which was dropped since cftime version 1.5.0
+# This solution and code are copied from the cftime test file: 
+# https://github.com/Unidata/cftime/blob/master/test/test_cftime.py
+class utime:
+    def __init__(self, unit_string, calendar='standard',
+                 only_use_cftime_datetimes=True,
+                 only_use_python_datetimes=False):
+        calendar = calendar.lower()
+        units, isostring = cftime._datesplit(unit_string)
+        self.origin = cftime._dateparse(unit_string,calendar=calendar)
+        self.units = units
+        self.calendar = calendar
+        self.unit_string = unit_string
+        self.only_use_cftime_datetimes = only_use_cftime_datetimes
+        self.only_use_python_datetimes = only_use_python_datetimes
+    def date2num(self, date):
+        return date2num(date,self.unit_string,calendar=self.calendar)
+    def num2date(self, time_value):
+        return num2date(time_value,self.unit_string,calendar=self.calendar,only_use_cftime_datetimes=self.only_use_cftime_datetimes,only_use_python_datetimes=self.only_use_python_datetimes)
      
