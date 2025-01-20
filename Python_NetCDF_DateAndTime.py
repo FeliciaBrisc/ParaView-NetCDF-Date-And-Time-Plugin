@@ -42,12 +42,9 @@ from paraview.numpy_support import *
 
 import cftime
 from datetime import datetime
-from cftime import num2date, date2num  #, _datesplit, _dateparse
-#from cftime import utime
-
+from cftime import num2date, date2num  
 
 #import ctypes #for the message box 
-
 
 def createModifiedCallback(anobject):
     import weakref
